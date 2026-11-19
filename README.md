@@ -16,6 +16,27 @@ This bundle rewrites a session **at the moment it is opened**: it keeps the conv
 
 It has no retention policy of its own. **When history is folded and what is folded is entirely DSH's compaction** (manual, or automatic at the context threshold). The plugin only materializes "whatever is visible right now" onto disk, once per open, and only when the stored log is above `minBytes`.
 
+
+## Prerequisites
+
+Checked before you install — missing pieces fail at install or first open:
+
+| need | why | check |
+|---|---|---|
+| Node.js ≥ 22 | the plugin and its child process | `node -v` |
+| **pnpm** | `dsh plugin add` forwards to pnpm in the profile directory | `pnpm -v` (missing: `corepack enable pnpm`) |
+| **`zstd` CLI** | the child decompresses the session log with it | `zstd --version` (missing: `apt install zstd`) |
+| `git` | only for `github:` / git specs | `git --version` |
+| DSH 0.2.2-rc.x | `sessionPersistence.open` + `sessions.prepare` | `dsh --version` |
+
+Installing needs network access to the package source (GitHub or npm). If `github:` installs hang, your host blocks `github.com`; use the tarball URL instead:
+
+```bash
+dsh plugin --profile web add https://codeload.github.com/TuringCorp-net/dsh-session-slim/tar.gz/refs/tags/v0.1.1
+```
+
+The bundle resolves the harness packages it needs from the running DSH installation; no symlinks or extra dependencies in the profile are required (v0.1.1).
+
 ## Install
 
 ```bash

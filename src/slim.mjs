@@ -9,25 +9,39 @@ import path from 'node:path'
 import { readSurface, readEvents, groupTurns, buildTranscript, messageText } from './transcript.mjs'
 
 /**
- * Module specifiers for the harness packages. Inside an installed bundle these
- * are absolute file URLs resolved by the host (the profile's loader knows where
- * the runtime lives); from a checkout they are the plain package names.
+ * Load one harness package. Three routes, in order:
+ *   1. the absolute URL the host resolved for us (env var),
+ *   2. a normal bare import (a checkout, or a profile that links the packages),
+ *   3. resolution relative to the running DSH binary, which is where a global
+ *      install keeps the packages (`.../@deepseek-ai/dsh/node_modules/...`).
+ * Route 3 is what makes a profile install work without hand-made symlinks.
  */
-const SPEC = {
-  cordis: () => process.env.DSH_SLIM_CORDIS ?? '@deepseek-ai/cordis',
-  session: () => process.env.DSH_SLIM_SESSION ?? '@deepseek-ai/dsh-session',
-  persistence: () => process.env.DSH_SLIM_PERSISTENCE ?? '@deepseek-ai/dsh-session-persistence-jsonl',
-  flock: () => process.env.DSH_SLIM_FLOCK ?? '@deepseek-ai/node-addon-system/flock',
+async function importPackage(envKey, specifier) {
+  const url = process.env[envKey]
+  if (url) return import(url)
+  try {
+    return await import(specifier)
+  } catch (bareError) {
+    const base = process.env.DSH_SLIM_BASE
+    if (base === undefined) throw bareError
+    const { createRequire } = await import('node:module')
+    const { pathToFileURL } = await import('node:url')
+    try {
+      return await import(pathToFileURL(createRequire(base).resolve(specifier)).href)
+    } catch {
+      throw bareError
+    }
+  }
 }
 
 const mb = (n) => (n / 1048576).toFixed(1) + ' MB'
 
 async function runtime(root) {
-  const { Context } = await import(SPEC.cordis())
+  const { Context } = await importPackage('DSH_SLIM_CORDIS', '@deepseek-ai/cordis')
   const ctx = new Context()
-  const smod = await import(SPEC.session())
+  const smod = await importPackage('DSH_SLIM_SESSION', '@deepseek-ai/dsh-session')
   await ctx.plugin({ name: 'sessions', apply: smod.SessionStore })
-  const pmod = await import(SPEC.persistence())
+  const pmod = await importPackage('DSH_SLIM_PERSISTENCE', '@deepseek-ai/dsh-session-persistence-jsonl')
   await ctx.plugin({ name: 'persistence', apply: c => pmod.apply(c, { root, compression: 'zstd' }) })
   return { ctx, mod: pmod }
 }
@@ -221,7 +235,7 @@ export async function slimSession(options) {
 export async function acquireSessionLock(sessionDir) {
   const lockPath = path.join(sessionDir, 'session.lock')
   const { open } = await import('node:fs/promises')
-  const { tryLockExclusive } = await import(SPEC.flock())
+  const { tryLockExclusive } = await importPackage('DSH_SLIM_FLOCK', '@deepseek-ai/node-addon-system/flock')
   let fh
   try {
     fh = await open(lockPath, 'a+')
@@ -248,7 +262,7 @@ export async function isSessionLocked(sessionDir) {
   const lockPath = path.join(sessionDir, 'session.lock')
   if (!existsSync(lockPath)) return false
   const { open } = await import('node:fs/promises')
-  const { tryLockExclusive } = await import(SPEC.flock())
+  const { tryLockExclusive } = await importPackage('DSH_SLIM_FLOCK', '@deepseek-ai/node-addon-system/flock')
   let fh
   try {
     fh = await open(lockPath, 'r+')

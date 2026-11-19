@@ -66,6 +66,27 @@ src/slim.mjs        写入 / 校验 / 归档 / 替换 / 锁检查
 src/search.mjs      归档检索
 ```
 
+
+## Prerequisites
+
+Checked before you install — missing pieces fail at install or first open:
+
+| need | why | check |
+|---|---|---|
+| Node.js ≥ 22 | the plugin and its child process | `node -v` |
+| **pnpm** | `dsh plugin add` forwards to pnpm in the profile directory | `pnpm -v` (missing: `corepack enable pnpm`) |
+| **`zstd` CLI** | the child decompresses the session log with it | `zstd --version` (missing: `apt install zstd`) |
+| `git` | only for `github:` / git specs | `git --version` |
+| DSH 0.2.2-rc.x | `sessionPersistence.open` + `sessions.prepare` | `dsh --version` |
+
+Installing needs network access to the package source (GitHub or npm). If `github:` installs hang, your host blocks `github.com`; use the tarball URL instead:
+
+```bash
+dsh plugin --profile web add https://codeload.github.com/TuringCorp-net/dsh-session-slim/tar.gz/refs/tags/v0.1.1
+```
+
+The bundle resolves the harness packages it needs from the running DSH installation; no symlinks or extra dependencies in the profile are required (v0.1.1).
+
 ## 安装（bundle 形态）
 
 ```bash

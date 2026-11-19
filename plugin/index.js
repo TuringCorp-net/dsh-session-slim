@@ -14,6 +14,7 @@
  * @module @local/dsh-session-slim
  */
 import { execFile } from 'node:child_process'
+import { createRequire } from 'node:module'
 import { statSync } from 'node:fs'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
@@ -34,9 +35,22 @@ function resolution() {
     DSH_SLIM_PERSISTENCE: '@deepseek-ai/dsh-session-persistence-jsonl',
     DSH_SLIM_FLOCK: '@deepseek-ai/node-addon-system/flock',
   }
+  // A profile install may not expose the packages to import.meta.resolve; the
+  // running DSH binary always sits next to them, so try its tree as well.
+  const bases = [process.argv[1], new URL(import.meta.url).pathname].filter(Boolean)
   for (const [key, specifier] of Object.entries(entries)) {
-    try { env[key] = import.meta.resolve(specifier) } catch { /* the child falls back to the bare name */ }
+    try { env[key] = import.meta.resolve(specifier) } catch { /* try the binary tree below */ }
+    if (env[key] === undefined) {
+      for (const base of bases) {
+        try {
+          const url = createRequire(base).resolve(specifier)
+          env[key] = url.startsWith('file:') ? url : `file://${url}`
+          break
+        } catch { /* next base */ }
+      }
+    }
   }
+  env.DSH_SLIM_BASE = process.argv[1] ?? new URL(import.meta.url).pathname
   return env
 }
 const CLI = fileURLToPath(new URL('../bin/slim.mjs', import.meta.url))
