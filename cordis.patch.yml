@@ -1,0 +1,11 @@
+# dsh-session-slim bundle patch
+# Mounts the open-time slimming hook. Set `enabled: false` to keep the bundle
+# installed but inert; `minBytes` is the only policy knob besides archiving.
+- insert:
+    - id: session-slim
+      name: '@local/dsh-session-slim'
+      config:
+        enabled: true
+        minBytes: 5242880
+        keepArchives: 5
+        verbose: true
