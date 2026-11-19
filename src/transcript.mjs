@@ -13,6 +13,17 @@ export const SURFACE_TYPES = new Set([
   'system/message', 'user/message', 'developer/message', 'assistant/message', 'tool/result',
 ])
 
+/**
+ * Session-level settings the rest of DSH derives from the log, not from the
+ * header: the permission knobs and the model chosen for this session. They are
+ * last-write-wins projection state, so the transcript carries the final value
+ * of each — dropping them makes a resumed session fall back to composition
+ * defaults, which silently changed a user's permissions after slimming.
+ */
+export const KNOB_TYPES = new Set([
+  'permission/preset', 'sandbox/mode', 'approval/policy', 'model/selection',
+])
+
 /** Stream one decoded JSONL record per line from a zstd-compressed session log. */
 export async function * streamEvents(srcPath) {
   const child = spawn('zstd', ['-dc', srcPath], { stdio: ['ignore', 'pipe', 'ignore'] })
@@ -29,6 +40,7 @@ export async function * streamEvents(srcPath) {
  */
 export async function readSurface(srcPath) {
   const nodes = []
+  const knobs = new Map()
   let header = null
   let total = 0
   let lastTitle = null
@@ -40,6 +52,7 @@ export async function readSurface(srcPath) {
       if (Array.isArray(k) && k.length === 0) lastTitle = ev
       continue
     }
+    if (KNOB_TYPES.has(ev.type)) { knobs.set(ev.type, ev); continue }
     if (!SURFACE_TYPES.has(ev.type)) continue
     const op = ev.surfaceOp
     if (op === undefined || op === 'append') { nodes.push({ seq: ev.seq, type: ev.type }); continue }
@@ -48,7 +61,7 @@ export async function readSurface(srcPath) {
     if (a < 0 || b < a) { nodes.push({ seq: ev.seq, type: ev.type }); continue }
     nodes.splice(a, b - a + 1, { seq: ev.seq, type: ev.type })
   }
-  return { header, nodes, total, lastTitle }
+  return { header, nodes, total, lastTitle, knobs: [...knobs.values()].sort((a, b) => a.seq - b.seq) }
 }
 
 /** Read the payloads of exactly the given sequence numbers. */
@@ -110,6 +123,14 @@ export function buildTranscript(header, groups, options = {}) {
   const events = []
   let seq = 0
   let turn = 0
+  // Settings first, exactly where DSH itself writes them: before turn 1 and
+  // outside any step.
+  for (const ev of options.knobs ?? []) {
+    const copy = { ...ev, seq: seq++, time: ev.time ?? (header.createdAt ?? Date.now()) }
+    delete copy.surfaceOp
+    delete copy.sourceEventSeqs
+    events.push(copy)
+  }
   const push = (type, data, surfaceOp) => {
     const ev = { type, seq: seq++, time: (header.createdAt ?? Date.now()) + seq, data }
     if (surfaceOp !== undefined) ev.surfaceOp = surfaceOp

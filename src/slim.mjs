@@ -157,14 +157,14 @@ export async function slimSession(options) {
     throw new Error(`session is currently open by a live writer (${path.join(srcDir, 'session.lock')}); close it before replacing`)
   }
   const t0 = Date.now()
-  const { header, nodes, total, lastTitle } = await readSurface(src)
+  const { header, nodes, total, lastTitle, knobs } = await readSurface(src)
   if (header?.version !== 4) return { skipped: true, reason: `session format v${String(header?.version)} not supported`, beforeBytes: before }
   if (header.isSeeded === true) return { skipped: true, reason: 'seeded session (fork/subagent) not supported yet', beforeBytes: before }
   const bySeq = await readEvents(src, nodes.map(n => n.seq))
   const groups = groupTurns(nodes, bySeq)
   // Keep the existing user-set title on a re-slim; only an explicit override wins.
   const effectiveTitle = title ?? lastTitle?.data?.title
-  const { events, turns } = buildTranscript(header, groups, { title: effectiveTitle })
+  const { events, turns } = buildTranscript(header, groups, { title: effectiveTitle, knobs })
   const analyzeMs = Date.now() - t0
 
   const orig = transcriptHash(groups)

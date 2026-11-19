@@ -87,6 +87,22 @@ Measured on a 69 MB / 100k-event session:
 
 Afterwards every open costs one `stat`. Sessions between `minBytes` and a few MB take well under a second; a session that grows past the threshold again is slimmed again on its next open.
 
+## Session settings are carried over
+
+The permission knobs (`permission/preset`, `sandbox/mode`, `approval/policy`) and
+the session's model choice (`model/selection`) are not in the message stream —
+DSH derives them from the log, and a transcript without them makes a resumed
+session fall back to composition defaults. 0.1.1–0.1.3 got this wrong and could
+silently reset a session's permissions after slimming; **0.1.4 preserves the
+final value of each** and writes them where DSH itself writes them, before turn 1.
+
+Sessions slimmed by an earlier version can be repaired in place:
+
+```bash
+node bin/repair-knobs.mjs ~/.dsh/sessions --dry-run   # report
+node bin/repair-knobs.mjs ~/.dsh/sessions             # append the archive's values
+```
+
 ## It keeps working after the swap
 
 A slimmed session is an ordinary session: the next turn appends to the new log

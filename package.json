@@ -1,6 +1,6 @@
 {
   "name": "dsh-session-slim",
-  "version": "0.1.3",
+  "version": "0.1.4",
   "type": "module",
   "description": "Open-time session slimming for DSH: materialize the official surface as the stored log, archive the original.",
   "bin": {
