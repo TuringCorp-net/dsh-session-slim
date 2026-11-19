@@ -69,6 +69,12 @@ const DEFAULTS = {
   verbose: true,
   /** Hard cap for one migration; the child process is killed past it. */
   timeoutMs: 10 * 60 * 1000,
+  /**
+   * Migrations allowed to run at once. Each child peaks around 150 MB, so on a
+   * small machine opening several big sessions in a row must not start several
+   * of them together.
+   */
+  maxConcurrent: 1,
 }
 
 export function apply(ctx, config = {}) {
@@ -96,6 +102,18 @@ export function apply(ctx, config = {}) {
   const original = service.open
   const busy = new Set()
 
+  // Tiny semaphore: the queue is FIFO and every task releases its slot.
+  let active = 0
+  const waiting = []
+  const acquireSlot = () => new Promise((resolve) => {
+    if (active < Math.max(1, opts.maxConcurrent)) { active++; resolve() } else { waiting.push(resolve) }
+  })
+  const releaseSlot = () => {
+    const next = waiting.shift()
+    if (next === undefined) active--
+    else next()
+  }
+
   async function maybeSlim(sessionId) {
     if (busy.has(sessionId)) return
     const dir = findSessionDir(root, sessionId)
@@ -109,6 +127,7 @@ export function apply(ctx, config = {}) {
     }
     busy.add(sessionId)
     const started = Date.now()
+    await acquireSlot()
     try {
       // Run the migration in a child process: a second Cordis store inside the
       // live server would be needless risk, and a runaway migration must not
@@ -130,6 +149,7 @@ export function apply(ctx, config = {}) {
     } catch (error) {
       ctx.logger?.warn?.(`session-slim: "${sessionId}" not slimmed: ${String(error?.message ?? error)}`)
     } finally {
+      releaseSlot()
       busy.delete(sessionId)
     }
   }
