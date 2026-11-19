@@ -84,7 +84,8 @@ export function apply(ctx, config = {}) {
     return
   }
   const resolved = resolution()
-  console.log(`[SESSION-SLIM] mounted (minBytes=${opts.minBytes}, keepArchives=${opts.keepArchives}, resolved=${Object.keys(resolved).length}/4)`)
+  const resolvedCount = Object.keys(resolved).filter(key => key !== 'DSH_SLIM_BASE').length
+  console.log(`[SESSION-SLIM] mounted (minBytes=${opts.minBytes}, keepArchives=${opts.keepArchives}, resolved=${resolvedCount}/4)`)
   ctx.logger?.info?.(`session-slim: mounted (minBytes=${opts.minBytes}, keepArchives=${opts.keepArchives})`)
   const service = ctx.sessionPersistence
   if (service === undefined || typeof service.open !== 'function') {
