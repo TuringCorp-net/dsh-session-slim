@@ -26,6 +26,25 @@ point: a slimmed session keeps working. The log line at migration time said 56 K
 
 Four sessions: **134.4 MB → 419 KB (99.69%)**.
 
+### Second batch (same box, one sitting)
+
+| session | before | after | turns | messages | migration time |
+|---|---:|---:|---:|---:|---:|
+| `b4081bf5` | 10.3 MB | 326 KB | 310 | 600 | 2,051 ms |
+| `a8e1bac3` | 14.1 MB | 169 KB | 80 | 225 | 2,674 ms |
+| `8e986917` | 8.9 MB | 126 KB | 65 | 85 | 2,375 ms |
+| `96cd56a0` | 6.5 MB | 90 KB | 22 | 26 | 1,337 ms |
+| `7ac0987c` | 18.2 MB | 131 KB | 42 | 167 | 3,386 ms |
+
+Nine sessions in total so far. The box now stores **34.1 MB of v4 logs** (down from
+204.5 MB at install) plus **192.3 MB of archives**, one session ≥5 MB still
+pending (`626b4c52`, 13.0 MB). Disk sits at 69% (39 GB used of 58 GB) — the
+archives are the price of a one-command rollback.
+
+With nine sessions opened, the service holds **862 MB** (`memory.current`), and
+the cgroup peak has not moved past the 1,400 MB it reached during the first burst
+of four opens.
+
 ## Time is spent on events, not megabytes
 
 21.9 MB / 43.6k events took 9.3 s while 68.6 MB / 100k events took 10.4 s, and
