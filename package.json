@@ -4,7 +4,7 @@
   "type": "module",
   "description": "Open-time session slimming for DSH: materialize the official surface as the stored log, archive the original.",
   "bin": {
-    "dsh-session-slim": "./bin/slim.mjs"
+    "dsh-session-slim": "bin/slim.mjs"
   },
   "engines": {
     "node": ">=22"
