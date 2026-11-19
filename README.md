@@ -40,9 +40,12 @@ The bundle resolves the harness packages it needs from the running DSH installat
 ## Install
 
 ```bash
+# npm package
+dsh plugin --profile web add dsh-session-slim
+# git
 dsh plugin --profile web add github:TuringCorp-net/dsh-session-slim
 # or a local tarball / directory
-dsh plugin --profile web add ./dsh-session-slim-0.1.0.tgz
+dsh plugin --profile web add ./dsh-session-slim-0.1.3.tgz
 ```
 
 Then restart the service. The bundle ships its own `dsh.bundle.patch`; no profile editing is needed.
@@ -78,6 +81,13 @@ Measured on a 69 MB / 100k-event session:
 | **total, one time** | **≈ 6.6 s** |
 
 Afterwards every open costs one `stat`. Sessions between `minBytes` and a few MB take well under a second; a session that grows past the threshold again is slimmed again on its next open.
+
+## It keeps working after the swap
+
+A slimmed session is an ordinary session: the next turn appends to the new log
+through the same official path. On the AWS box a scheduled task opened the
+janitor session at 06:00:09Z, the plugin migrated it (21.9 MB → 56 KB, 9.3 s),
+and that same run finished its work at 06:00:51Z and wrote its dispatch log.
 
 ## What is lost
 

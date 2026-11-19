@@ -90,10 +90,12 @@ The bundle resolves the harness packages it needs from the running DSH installat
 ## 安装（bundle 形态）
 
 ```bash
-# 从 GitHub（发布后）
-dsh plugin --profile web add github:<owner>/dsh-session-slim
+# npm 包
+dsh plugin --profile web add dsh-session-slim
+# 或从 GitHub
+dsh plugin --profile web add github:TuringCorp-net/dsh-session-slim
 # 或本地 tarball
-dsh plugin --profile web add ./dsh-session-slim-0.1.0.tgz
+dsh plugin --profile web add ./dsh-session-slim-0.1.3.tgz
 ```
 装完重启服务生效。包内自带 `dsh.bundle.patch`，不需要改任何 profile 配置。
 
