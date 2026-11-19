@@ -108,10 +108,11 @@ export function apply(ctx, config = {}) {
         if (opts.verbose) ctx.logger?.info?.(`session-slim: "${sessionId}" skipped (${result.reason})`)
         return
       }
-      ctx.logger?.info?.(
-        `session-slim: "${sessionId}" ${(result.beforeBytes / 1048576).toFixed(1)} MB -> ${(result.afterBytes / 1024).toFixed(0)} KB, `
-        + `${result.turns} turns, ${result.humanMessages} messages, ${Date.now() - started} ms`,
-      )
+      const line = `session-slim: "${sessionId}" ${(result.beforeBytes / 1048576).toFixed(1)} MB -> ${(result.afterBytes / 1024).toFixed(0)} KB, `
+        + `${result.turns} turns, ${result.humanMessages} messages, ${Date.now() - started} ms`
+      // console.log, not only ctx.logger: info-level records are filtered out of the service journal.
+      console.log(`[SESSION-SLIM] ${line}`)
+      ctx.logger?.info?.(line)
     } catch (error) {
       ctx.logger?.warn?.(`session-slim: "${sessionId}" not slimmed: ${String(error?.message ?? error)}`)
     } finally {

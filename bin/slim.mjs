@@ -76,6 +76,28 @@ async function main() {
     }
     return
   }
+  if (cmd === 'status') {
+    const root = path.resolve(positional[0] ?? '.')
+    const minBytes = flags.get('min') ? Number(flags.get('min')) : 0
+    const rows = []
+    for (const project of readdirSync(root, { withFileTypes: true })) {
+      if (!project.isDirectory()) continue
+      for (const entry of readdirSync(path.join(root, project.name), { withFileTypes: true })) {
+        if (!entry.isDirectory()) continue
+        const dir = path.join(root, project.name, entry.name)
+        const log = path.join(dir, 'session.v4.jsonl.zstd')
+        if (!existsSync(log)) continue
+        const size = statSync(log).size
+        if (size < minBytes) continue
+        const archives = existsSync(path.join(dir, 'archive')) ? readdirSync(path.join(dir, 'archive')).length : 0
+        rows.push({ id: entry.name, bytes: size, archives, dir })
+      }
+    }
+    rows.sort((a, b) => b.bytes - a.bytes)
+    console.log(`sessions=${rows.length} total=${(rows.reduce((n, r) => n + r.bytes, 0) / 1048576).toFixed(1)} MB`)
+    for (const r of rows) console.log(`${(r.bytes / 1048576).toFixed(2).padStart(8)} MB  archives=${r.archives}  ${r.id}`)
+    return
+  }
   if (cmd === 'info') {
     const dir = path.resolve(positional[0] ?? '.')
     const log = path.join(dir, 'session.v4.jsonl.zstd')
