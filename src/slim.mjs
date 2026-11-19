@@ -156,9 +156,13 @@ export async function slimSession(options) {
   const orig = transcriptHash(groups)
   const scratch = mkdtempSync(path.join(os.tmpdir(), 'dsh-slim-'))
   try {
+    const tWrite = Date.now()
     const produced = await writeTranscript({ header: { ...header, id: header.id }, events, root: scratch })
+    const writeMs = Date.now() - tWrite
     const afterBytes = statSync(produced).size
+    const tVerify = Date.now()
     const verify = await verifySession(scratch, header.id)
+    const verifyMs = Date.now() - tVerify
     if (verify.humanHash !== orig.hash) {
       throw new Error(`transcript mismatch: ${verify.humanHash} != ${orig.hash}`)
     }
@@ -166,12 +170,14 @@ export async function slimSession(options) {
       id: header.id, srcDir, turns, surfaceNodes: nodes.length, totalEvents: total,
       transcriptEvents: events.length, beforeBytes: before, afterBytes, analyzeMs,
       humanMessages: verify.humanMessages, humanChars: verify.humanChars, hash: verify.humanHash,
+      analyzeMs, writeMs, verifyMs, totalMs: Date.now() - t0,
       dryRun,
     }
     if (dryRun) return result
 
     if (replace) {
       // Re-check under our own lease: the log must not have moved under the analysis.
+      const tInstall = Date.now()
       const release = await acquireSessionLock(srcDir)
       if (release === null) throw new Error('session became owned by a live writer during slimming')
       try {
@@ -179,7 +185,8 @@ export async function slimSession(options) {
         if (now.size !== beforeStat.size || now.mtimeMs !== beforeStat.mtimeMs) {
           return { ...result, skipped: true, reason: 'log changed during analysis' }
         }
-        return await install(result, produced)
+        const installed = await install(result, produced)
+        return { ...installed, installMs: Date.now() - tInstall, totalMs: Date.now() - t0 }
       } finally { await release() }
     }
     if (outDir) {

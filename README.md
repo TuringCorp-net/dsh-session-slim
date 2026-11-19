@@ -66,6 +66,16 @@ src/slim.mjs        写入 / 校验 / 归档 / 替换 / 锁检查
 src/search.mjs      归档检索
 ```
 
+## 安装（bundle 形态）
+
+```bash
+# 从 GitHub（发布后）
+dsh plugin --profile web add github:<owner>/dsh-session-slim
+# 或本地 tarball
+dsh plugin --profile web add ./dsh-session-slim-0.1.0.tgz
+```
+装完重启服务生效。包内自带 `dsh.bundle.patch`，不需要改任何 profile 配置。
+
 ## 插件形态（推荐）
 
 插件在 `sessionPersistence.open()` 之前跑一次「物化」：把**官方当前的 surface**写成磁盘上的会话日志，原日志归档。之后 DSH 自己读到的就是这份小日志——后续的读取、追加、压缩全部由官方逻辑完成，插件不参与。
@@ -76,7 +86,7 @@ src/search.mjs      归档检索
 # 你的 profile 的 cordis.patch.yml
 - insert:
     - id: session-slim
-      name: '/path/to/dsh-session-slim/plugin/index.js'
+      name: 'dsh-session-slim'
       config:
         enabled: true
         minBytes: 5242880   # 小于这个就完全跳过（只花一次 stat）

@@ -3,7 +3,7 @@
 # installed but inert; `minBytes` is the only policy knob besides archiving.
 - insert:
     - id: session-slim
-      name: '@local/dsh-session-slim'
+      name: 'dsh-session-slim'
       config:
         enabled: true
         minBytes: 5242880

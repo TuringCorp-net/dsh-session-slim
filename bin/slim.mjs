@@ -47,7 +47,7 @@ async function main() {
     console.log(`  turns written   ${r.turns}   transcript events ${r.transcriptEvents}`)
     console.log(`  size            ${fmtBytes(r.beforeBytes)} -> ${fmtBytes(r.afterBytes)}`)
     console.log(`  human messages  ${r.humanMessages} (${r.humanChars} chars, hash ${r.hash})`)
-    console.log(`  analyze time    ${r.analyzeMs} ms`)
+    console.log(`  timing          analyze ${r.analyzeMs} ms | write ${r.writeMs} ms | verify ${r.verifyMs} ms | install ${r.installMs ?? '-'} ms | total ${r.totalMs} ms`)
     if (r.dryRun) console.log('  DRY RUN — nothing written')
     else if (r.replaced) console.log(`  REPLACED        original archived at ${r.archivePath}`)
     else if (r.outPath) console.log(`  WRITTEN         ${r.outPath}`)
