@@ -1,5 +1,10 @@
 # dsh-session-slim
 
+[![npm](https://img.shields.io/npm/v/dsh-session-slim)](https://www.npmjs.com/package/dsh-session-slim)
+[![license](https://img.shields.io/badge/license-MIT-blue)](./LICENSE)
+[![node](https://img.shields.io/badge/node-%E2%89%A522-brightgreen)](./package.json)
+[![dsh-plugin](https://img.shields.io/badge/topic-dsh--plugin-0b7285)](https://github.com/topics/dsh-plugin)
+
 Open a long DSH session **without loading its whole event log**.
 
 DeepSeek Harness stores every session as an append-only event log. Resuming one reads *all* of it into memory: a 69 MB / 100k-event session costs **~1.1 GB RSS and 3.5 s** on resume — enough to push a 2 GB VM into swap as soon as you open a second or third conversation. Most of that log is never shown again: tool traffic, reasoning traces, per-delta replay streams, and history that compaction already folded away.
@@ -32,7 +37,7 @@ Checked before you install — missing pieces fail at install or first open:
 Installing needs network access to the package source (GitHub or npm). If `github:` installs hang, your host blocks `github.com`; use the tarball URL instead:
 
 ```bash
-dsh plugin --profile web add https://codeload.github.com/TuringCorp-net/dsh-session-slim/tar.gz/refs/tags/v0.1.1
+dsh plugin --profile web add https://codeload.github.com/TuringCorp-net/dsh-session-slim/tar.gz/refs/tags/latest
 ```
 
 The bundle resolves the harness packages it needs from the running DSH installation; no symlinks or extra dependencies in the profile are required (v0.1.1).

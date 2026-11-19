@@ -1,5 +1,9 @@
 # dsh-session-slim
 
+[![npm](https://img.shields.io/npm/v/dsh-session-slim)](https://www.npmjs.com/package/dsh-session-slim)
+[![license](https://img.shields.io/badge/license-MIT-blue)](./LICENSE)
+[![node](https://img.shields.io/badge/node-%E2%89%A522-brightgreen)](./package.json)
+
 把 DSH 的长会话日志（`session.v4.jsonl.zstd`）压成**只含对话本身的轻量日志**，原来的整份日志移进 `archive/` 保留，随时可查。
 
 ## 为什么
@@ -82,7 +86,7 @@ Checked before you install — missing pieces fail at install or first open:
 Installing needs network access to the package source (GitHub or npm). If `github:` installs hang, your host blocks `github.com`; use the tarball URL instead:
 
 ```bash
-dsh plugin --profile web add https://codeload.github.com/TuringCorp-net/dsh-session-slim/tar.gz/refs/tags/v0.1.1
+dsh plugin --profile web add https://codeload.github.com/TuringCorp-net/dsh-session-slim/tar.gz/refs/tags/latest
 ```
 
 The bundle resolves the harness packages it needs from the running DSH installation; no symlinks or extra dependencies in the profile are required (v0.1.1).

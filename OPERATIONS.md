@@ -9,7 +9,7 @@
 # 安装（在目标机器上，用目标 profile）
 DSH_HOME=<home> dsh plugin --profile web add github:<user>/<repo>     # 或本地 tgz 路径
 # 卸载
-DSH_HOME=<home> dsh plugin --profile web remove @local/dsh-session-slim
+DSH_HOME=<home> dsh plugin --profile web remove dsh-session-slim
 ```
 装完重启服务生效（`patchReload: live` 有时能热挂载，但重启最干净）。
 
@@ -25,7 +25,7 @@ DSH_HOME=<home> dsh plugin --profile web remove @local/dsh-session-slim
 
 ## 怎么确认它在工作
 ```bash
-journalctl -u zero.service | grep -E 'SESSION-SLIM|session-slim'
+journalctl -u <your-dsh-service> | grep -E 'SESSION-SLIM|session-slim'
 # 挂载：      [SESSION-SLIM] mounted (minBytes=…, keepArchives=…, resolved=4/4)
 # 单次迁移：  session-slim: "<id>" 68.6 MB -> 81 KB, 49 turns, 80 messages, 6320 ms
 # 跳过：      … is owned by a live writer, leaving it alone
@@ -35,7 +35,7 @@ ls -la <sessionDir>/archive  # 原件在这里
 ```
 
 ## 出问题怎么办
-1. **服务起不来**：删掉 profile 的 `node_modules/@local/dsh-session-slim` 或从 `package.json` 的 `dsh.profile.bundles` 里移除该行，重启。
+1. **服务起不来**：删掉 profile 的 `node_modules/dsh-session-slim` 或从 `package.json` 的 `dsh.profile.bundles` 里移除该行，重启。
 2. **某个会话想回滚**：
    ```bash
    D=<sessionDir>
